@@ -79,8 +79,7 @@ func main() {
 	err = renderOutput(config)
 	checkError(err)
 
-	client := new(http.Client)
-	err = download(config, client)
+	err = download(config)
 	checkError(err)
 }
 
@@ -156,7 +155,9 @@ func renderOutput(config *configuration) error {
 	return nil
 }
 
-func download(config *configuration, client *http.Client) error {
+func download(config *configuration) error {
+	client := new(http.Client)
+
 	req, err := http.NewRequest("GET", fmt.Sprintf("http://adventofcode.com/%d/day/%d/input", config.Year, config.Day), nil)
 	if err != nil { return err }
 
