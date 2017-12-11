@@ -80,7 +80,7 @@ func main() {
 	checkError(err)
 
 	client := new(http.Client)
-	err, _ = download(config, client)
+	err = download(config, client)
 	checkError(err)
 }
 
@@ -156,30 +156,30 @@ func renderOutput(config *configuration) error {
 	return nil
 }
 
-func download(config *configuration, client *http.Client) (error, int) {
+func download(config *configuration, client *http.Client) error {
 	req, err := http.NewRequest("GET", fmt.Sprintf("http://adventofcode.com/%d/day/%d/input", config.Year, config.Day), nil)
-	if err != nil { return err, 0 }
+	if err != nil { return err }
 
 	cookie := new(http.Cookie)
 	cookie.Name, cookie.Value = "session", config.SessionCookie
 	req.AddCookie(cookie)
 
 	resp, err := client.Do(req)
-	if err != nil { return err, 0 }
+	if err != nil { return err }
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return errors.New(resp.Status), resp.StatusCode
+		return errors.New(resp.Status)
 	}
 
 	file, err := os.Create(config.Output)
-	if err != nil { return err, 0 }
+	if err != nil { return err }
 
 	defer file.Close()
 
 	_, err = io.Copy(file, resp.Body)
-	if err != nil { return err, 0 }
+	if err != nil { return err }
 
-	return nil, 0
+	return nil
 }
