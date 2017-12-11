@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"time"
+	"math/rand"
 	"net/http"
 	"text/template"
 )
@@ -38,6 +39,13 @@ Options:
 	-day 24
 		Download the input from the specified year or day. By default the
 		current year and day is used.
+
+	-wait
+		If this flag is specified, year and day are ignored and the program
+		waits until midnight (when new puzzles are released) and then downloads
+		the input of the new day. While waiting a countdown is displayed. To
+		reduce load on the Advent of Code servers, the download is started after
+		a random delay between 2 and 30 seconds after midnight.
 `
 
 const repositoryMessage =
@@ -63,6 +71,8 @@ the current directory and add the 'session-cookie' key:
 `
 
 func main() {
+	rand.Seed(time.Now().Unix())
+
 	config, err := loadConfigs()
 	checkError(err)
 
@@ -73,11 +83,28 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = addDefaultValues(config)
+	est, err := time.LoadLocation("EST")
 	checkError(err)
+
+	now := time.Now().In(est)
+	next := time.Date(now.Year(), now.Month(), now.Day() + 1, 0, 0, 0, 0, est)
+
+	if config.Year == 0 { config.Year = now.Year() }
+	if config.Day  == 0 { config.Day  = now.Day()  }
+	if config.Output == "" { config.Output = "input.txt" }
+
+	if config.Wait {
+		// Overwrite values before rendering output.
+		config.Year = next.Year()
+		config.Day  = next.Day()
+	}
 
 	err = renderOutput(config)
 	checkError(err)
+
+	if config.Wait {
+		wait(next)
+	}
 
 	err = download(config)
 	checkError(err)
@@ -103,6 +130,8 @@ func addFlags(config *configuration) {
 	yearFlag := flags.Int("year", 0, "")
 	dayFlag := flags.Int("day", 0, "")
 
+	waitFlag := flags.Bool("wait", false, "")
+
 	err := flags.Parse(os.Args[1:])
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -118,23 +147,15 @@ func addFlags(config *configuration) {
 		os.Exit(0)
 	}
 
-	if *sessionCookieFlag != "" { config.SessionCookie = *sessionCookieFlag }
-	if *outputFlag        != "" { config.Output        = *outputFlag        }
-	if *yearFlag != 0 { config.Year = *yearFlag }
-	if *dayFlag  != 0 { config.Day  = *dayFlag  }
-}
+	flagConfig := new(configuration)
+	flagConfig.SessionCookie = *sessionCookieFlag
+	flagConfig.Output = *outputFlag
+	flagConfig.Year = *yearFlag
+	flagConfig.Day = *dayFlag
 
-func addDefaultValues(config *configuration) error {
-	est, err := time.LoadLocation("EST")
-	if err != nil { return err }
+	config.merge(flagConfig)
 
-	now := time.Now().In(est)
-	if config.Year == 0 { config.Year = now.Year() }
-	if config.Day  == 0 { config.Day  = now.Day()  }
-
-	if config.Output == "" { config.Output = "input.txt" }
-
-	return nil
+	if *waitFlag { config.Wait = true }
 }
 
 func renderOutput(config *configuration) error {
@@ -153,6 +174,38 @@ func renderOutput(config *configuration) error {
 	config.Output = buf.String()
 
 	return nil
+}
+
+func wait(next time.Time) {
+	min, max := 2 * 1000, 30 * 1000
+	delayMillis := min + rand.Intn(max - min + 1)
+
+	hours, mins, secs := 0, 0, 0
+	for remaining := time.Until(next); remaining >= 0; remaining = time.Until(next) {
+		remaining += 1 * time.Second // let casts round up instead of down
+		newHours := int(remaining.Hours()) % 24
+		newMins  := int(remaining.Minutes()) % 60
+		newSecs  := int(remaining.Seconds()) % 60
+		if newHours != hours || newMins != mins || newSecs != secs {
+			hours, mins, secs = newHours, newMins, newSecs
+			fmt.Fprintf(os.Stderr, "\r%02d:%02d:%02d + %04.1fs", hours, mins, secs, float32(delayMillis) / 1000.0)
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+
+	next = next.Add(time.Duration(delayMillis) * time.Millisecond)
+
+	millis := 0
+	for remaining := time.Until(next); remaining >= 0; remaining = time.Until(next) {
+		newMillis := int(remaining.Nanoseconds() / 1e6)
+		if newMillis != millis {
+			millis = newMillis
+			fmt.Fprintf(os.Stderr, "\r00:00:00 + %04.1fs", float32(millis) / 1000.0)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+
+	fmt.Fprintln(os.Stderr, "\rDownloading...  ")
 }
 
 func download(config *configuration) error {

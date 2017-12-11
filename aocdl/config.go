@@ -13,6 +13,7 @@ type configuration struct {
 	Output        string `json:"output"`
 	Year          int    `json:"year"`
 	Day           int    `json:"day"`
+	Wait          bool   `json:"-"`
 }
 
 func loadConfigs() (*configuration, error) {
