@@ -64,6 +64,9 @@ aocdl -wait
 		Download the input from the specified year or day. By default the
 		current year and day is used.
 
+	-force
+		Overwrite file if it already exists.
+
 	-wait
 		If this flag is specified, year and day are ignored and the program
 		waits until midnight (when new puzzles are released) and then downloads

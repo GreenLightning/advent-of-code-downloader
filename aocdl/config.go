@@ -13,6 +13,7 @@ type configuration struct {
 	Output        string `json:"output"`
 	Year          int    `json:"year"`
 	Day           int    `json:"day"`
+	Force         bool   `json:"-"`
 	Wait          bool   `json:"-"`
 }
 

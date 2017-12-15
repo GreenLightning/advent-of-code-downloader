@@ -40,6 +40,9 @@ Options:
 		Download the input from the specified year or day. By default the
 		current year and day is used.
 
+	-force
+		Overwrite file if it already exists.
+
 	-wait
 		If this flag is specified, year and day are ignored and the program
 		waits until midnight (when new puzzles are released) and then downloads
@@ -102,10 +105,12 @@ func main() {
 	err = renderOutput(config)
 	checkError(err)
 
-	// Check if output file exists before waiting and before downloading.
-	if _, err := os.Stat(config.Output); !os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "file '%s' already exists\n", config.Output)
-		os.Exit(1)
+	if !config.Force {
+		// Check if output file exists before waiting and before downloading.
+		if _, err := os.Stat(config.Output); !os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "file '%s' already exists; use '-force' to overwrite\n", config.Output)
+			os.Exit(1)
+		}
 	}
 
 	if config.Wait {
@@ -136,6 +141,7 @@ func addFlags(config *configuration) {
 	yearFlag := flags.Int("year", 0, "")
 	dayFlag := flags.Int("day", 0, "")
 
+	forceFlag := flags.Bool("force", false, "")
 	waitFlag := flags.Bool("wait", false, "")
 
 	err := flags.Parse(os.Args[1:])
@@ -161,6 +167,7 @@ func addFlags(config *configuration) {
 
 	config.merge(flagConfig)
 
+	if *forceFlag { config.Force = true }
 	if *waitFlag { config.Wait = true }
 }
 
@@ -233,9 +240,16 @@ func download(config *configuration) error {
 		return errors.New(resp.Status)
 	}
 
-	file, err := os.OpenFile(config.Output, os.O_WRONLY | os.O_CREATE | os.O_EXCL, 0666)
+	flags := os.O_WRONLY | os.O_CREATE
+	if config.Force {
+		flags |= os.O_TRUNC
+	} else {
+		flags |= os.O_EXCL
+	}
+
+	file, err := os.OpenFile(config.Output, flags, 0666)
 	if os.IsExist(err) {
-		return errors.New(fmt.Sprintf("file '%s' already exists", config.Output))
+		return errors.New(fmt.Sprintf("file '%s' already exists; use '-force' to overwrite", config.Output))
 	} else if err != nil {
 		return err
 	}
