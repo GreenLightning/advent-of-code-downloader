@@ -102,6 +102,12 @@ func main() {
 	err = renderOutput(config)
 	checkError(err)
 
+	// Check if output file exists before waiting and before downloading.
+	if _, err := os.Stat(config.Output); !os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "file '%s' already exists\n", config.Output)
+		os.Exit(1)
+	}
+
 	if config.Wait {
 		wait(next)
 	}
@@ -227,8 +233,12 @@ func download(config *configuration) error {
 		return errors.New(resp.Status)
 	}
 
-	file, err := os.Create(config.Output)
-	if err != nil { return err }
+	file, err := os.OpenFile(config.Output, os.O_WRONLY | os.O_CREATE | os.O_EXCL, 0666)
+	if os.IsExist(err) {
+		return errors.New(fmt.Sprintf("file '%s' already exists", config.Output))
+	} else if err != nil {
+		return err
+	}
 
 	defer file.Close()
 
