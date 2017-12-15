@@ -141,9 +141,9 @@ func addFlags(config *configuration) {
 	}
 
 	if *helpFlag {
-		fmt.Fprintln(os.Stderr, titleAboutMessage)
-		fmt.Fprintln(os.Stderr, usageMessage)
-		fmt.Fprintln(os.Stderr, repositoryMessage)
+		fmt.Println(titleAboutMessage)
+		fmt.Println(usageMessage)
+		fmt.Println(repositoryMessage)
 		os.Exit(0)
 	}
 
@@ -188,7 +188,7 @@ func wait(next time.Time) {
 		newSecs  := int(remaining.Seconds()) % 60
 		if newHours != hours || newMins != mins || newSecs != secs {
 			hours, mins, secs = newHours, newMins, newSecs
-			fmt.Fprintf(os.Stderr, "\r%02d:%02d:%02d + %04.1fs", hours, mins, secs, float32(delayMillis) / 1000.0)
+			fmt.Printf("\r%02d:%02d:%02d + %04.1fs", hours, mins, secs, float32(delayMillis) / 1000.0)
 		}
 		time.Sleep(200 * time.Millisecond)
 	}
@@ -200,12 +200,12 @@ func wait(next time.Time) {
 		newMillis := int(remaining.Nanoseconds() / 1e6)
 		if newMillis != millis {
 			millis = newMillis
-			fmt.Fprintf(os.Stderr, "\r00:00:00 + %04.1fs", float32(millis) / 1000.0)
+			fmt.Printf("\r00:00:00 + %04.1fs", float32(millis) / 1000.0)
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
 
-	fmt.Fprintln(os.Stderr, "\rDownloading...  ")
+	fmt.Printf("\r                \r")
 }
 
 func download(config *configuration) error {
