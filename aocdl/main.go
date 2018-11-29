@@ -224,7 +224,7 @@ func wait(next time.Time) {
 func download(config *configuration) error {
 	client := new(http.Client)
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://adventofcode.com/%d/day/%d/input", config.Year, config.Day), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://adventofcode.com/%d/day/%d/input", config.Year, config.Day), nil)
 	if err != nil { return err }
 
 	cookie := new(http.Cookie)
