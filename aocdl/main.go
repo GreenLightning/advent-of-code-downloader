@@ -6,22 +6,20 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"os"
-	"time"
 	"math/rand"
 	"net/http"
+	"os"
 	"text/template"
+	"time"
 )
 
-const titleAboutMessage =
-`Advent of Code Downloader
+const titleAboutMessage = `Advent of Code Downloader
 
 aocdl is a command line utility that automatically downloads your Advent of Code
 puzzle inputs.
 `
 
-const usageMessage =
-`Usage:
+const usageMessage = `Usage:
 
 	aocdl [options]
 
@@ -51,15 +49,14 @@ Options:
 		a random delay between 2 and 30 seconds after midnight.
 `
 
-const repositoryMessage =
-`Repository:
+const repositoryMessage = `Repository:
 
 	https://github.com/GreenLightning/advent-of-code-downloader
 `
 
-const missingSessionCookieMessage =
-`No session cookie provided. The session cookie is required to download your
-personalized puzzle input.
+const missingSessionCookieMessage = `No Session Cookie
+
+A session cookie is required to download your personalized puzzle input.
 
 Please provide your session cookie as a command line parameter:
 
@@ -90,16 +87,22 @@ func main() {
 	checkError(err)
 
 	now := time.Now().In(est)
-	next := time.Date(now.Year(), now.Month(), now.Day() + 1, 0, 0, 0, 0, est)
+	next := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, est)
 
-	if config.Year == 0 { config.Year = now.Year() }
-	if config.Day  == 0 { config.Day  = now.Day()  }
-	if config.Output == "" { config.Output = "input.txt" }
+	if config.Year == 0 {
+		config.Year = now.Year()
+	}
+	if config.Day == 0 {
+		config.Day = now.Day()
+	}
+	if config.Output == "" {
+		config.Output = "input.txt"
+	}
 
 	if config.Wait {
 		// Overwrite values before rendering output.
 		config.Year = next.Year()
-		config.Day  = next.Day()
+		config.Day = next.Day()
 	}
 
 	err = renderOutput(config)
@@ -167,13 +170,19 @@ func addFlags(config *configuration) {
 
 	config.merge(flagConfig)
 
-	if *forceFlag { config.Force = true }
-	if *waitFlag { config.Wait = true }
+	if *forceFlag {
+		config.Force = true
+	}
+	if *waitFlag {
+		config.Wait = true
+	}
 }
 
 func renderOutput(config *configuration) error {
 	tmpl, err := template.New("output").Parse(config.Output)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	buf := new(bytes.Buffer)
 
@@ -182,7 +191,9 @@ func renderOutput(config *configuration) error {
 	data["Day"] = config.Day
 
 	err = tmpl.Execute(buf, data)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	config.Output = buf.String()
 
@@ -190,18 +201,18 @@ func renderOutput(config *configuration) error {
 }
 
 func wait(next time.Time) {
-	min, max := 2 * 1000, 30 * 1000
-	delayMillis := min + rand.Intn(max - min + 1)
+	min, max := 2*1000, 30*1000
+	delayMillis := min + rand.Intn(max-min+1)
 
 	hours, mins, secs := 0, 0, 0
 	for remaining := time.Until(next); remaining >= 0; remaining = time.Until(next) {
 		remaining += 1 * time.Second // let casts round up instead of down
 		newHours := int(remaining.Hours()) % 24
-		newMins  := int(remaining.Minutes()) % 60
-		newSecs  := int(remaining.Seconds()) % 60
+		newMins := int(remaining.Minutes()) % 60
+		newSecs := int(remaining.Seconds()) % 60
 		if newHours != hours || newMins != mins || newSecs != secs {
 			hours, mins, secs = newHours, newMins, newSecs
-			fmt.Printf("\r%02d:%02d:%02d + %04.1fs", hours, mins, secs, float32(delayMillis) / 1000.0)
+			fmt.Printf("\r%02d:%02d:%02d + %04.1fs", hours, mins, secs, float32(delayMillis)/1000.0)
 		}
 		time.Sleep(200 * time.Millisecond)
 	}
@@ -213,7 +224,7 @@ func wait(next time.Time) {
 		newMillis := int(remaining.Nanoseconds() / 1e6)
 		if newMillis != millis {
 			millis = newMillis
-			fmt.Printf("\r00:00:00 + %04.1fs", float32(millis) / 1000.0)
+			fmt.Printf("\r00:00:00 + %04.1fs", float32(millis)/1000.0)
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
@@ -225,14 +236,18 @@ func download(config *configuration) error {
 	client := new(http.Client)
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://adventofcode.com/%d/day/%d/input", config.Year, config.Day), nil)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	cookie := new(http.Cookie)
 	cookie.Name, cookie.Value = "session", config.SessionCookie
 	req.AddCookie(cookie)
 
 	resp, err := client.Do(req)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	defer resp.Body.Close()
 
@@ -257,7 +272,9 @@ func download(config *configuration) error {
 	defer file.Close()
 
 	_, err = io.Copy(file, resp.Body)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

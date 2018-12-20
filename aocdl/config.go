@@ -1,9 +1,9 @@
 package main
 
 import (
-	"os"
 	"encoding/json"
 	"io/ioutil"
+	"os"
 	"os/user"
 	"path/filepath"
 )
@@ -22,11 +22,15 @@ func loadConfigs() (*configuration, error) {
 
 	home := ""
 	usr, err := user.Current()
-	if err == nil { home = usr.HomeDir }
+	if err == nil {
+		home = usr.HomeDir
+	}
 
 	if home != "" {
 		err = config.mergeWithFileIfExists(filepath.Join(home, ".aocdlconfig"))
-		if err != nil { return nil, err }
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	wd, _ := os.Getwd()
@@ -36,7 +40,9 @@ func loadConfigs() (*configuration, error) {
 	// current working directory.
 	if wd == "" || home == "" || wd != home {
 		err = config.mergeWithFileIfExists(".aocdlconfig")
-		if err != nil { return nil, err }
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return config, nil
@@ -44,11 +50,15 @@ func loadConfigs() (*configuration, error) {
 
 func loadConfig(filename string) (*configuration, error) {
 	data, err := ioutil.ReadFile(filename)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	config := new(configuration)
 	err = json.Unmarshal(data, config)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	return config, nil
 }
@@ -69,8 +79,16 @@ func (config *configuration) mergeWithFileIfExists(filename string) error {
 }
 
 func (config *configuration) merge(other *configuration) {
-	if other.SessionCookie != "" { config.SessionCookie = other.SessionCookie }
-	if other.Output        != "" { config.Output        = other.Output        }
-	if other.Year != 0 { config.Year = other.Year }
-	if other.Day  != 0 { config.Day  = other.Day  }
+	if other.SessionCookie != "" {
+		config.SessionCookie = other.SessionCookie
+	}
+	if other.Output != "" {
+		config.Output = other.Output
+	}
+	if other.Year != 0 {
+		config.Year = other.Year
+	}
+	if other.Day != 0 {
+		config.Day = other.Day
+	}
 }
