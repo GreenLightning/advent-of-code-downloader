@@ -264,7 +264,7 @@ func download(config *configuration) error {
 
 	file, err := os.OpenFile(config.Output, flags, 0666)
 	if os.IsExist(err) {
-		return errors.New(fmt.Sprintf("file '%s' already exists; use '-force' to overwrite", config.Output))
+		return fmt.Errorf("file '%s' already exists; use '-force' to overwrite", config.Output)
 	} else if err != nil {
 		return err
 	}
