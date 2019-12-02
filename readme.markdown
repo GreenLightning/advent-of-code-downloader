@@ -2,8 +2,14 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/GreenLightning/advent-of-code-downloader)](https://goreportcard.com/report/github.com/GreenLightning/advent-of-code-downloader)
 
-`aocdl` is a command line utility that automatically downloads your Advent of
-Code puzzle inputs.
+`aocdl` is a command line utility that automatically downloads your [Advent of
+Code](https://adventofcode.com/) puzzle inputs.
+
+*Trivia*: If the puzzle input is very short, it will be embedded into the
+puzzle page instead of being linked (for an example see [day 4 of
+2015](https://adventofcode.com/2015/day/4)). Thanks to the consistent API of
+the Advent of Code website, these puzzle inputs can be downloaded exactly like
+the normal, longer puzzle inputs.
 
 ## Installation
 
