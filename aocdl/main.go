@@ -137,8 +137,6 @@ func addFlags(config *configuration) {
 	ignored := new(bytes.Buffer)
 	flags.SetOutput(ignored)
 
-	helpFlag := flags.Bool("help", false, "")
-
 	sessionCookieFlag := flags.String("session-cookie", "", "")
 	outputFlag := flags.String("output", "", "")
 	yearFlag := flags.Int("year", 0, "")
@@ -148,18 +146,17 @@ func addFlags(config *configuration) {
 	waitFlag := flags.Bool("wait", false, "")
 
 	err := flags.Parse(os.Args[1:])
+	if err == flag.ErrHelp {
+		fmt.Println(titleAboutMessage)
+		fmt.Println(usageMessage)
+		fmt.Println(repositoryMessage)
+		os.Exit(0)
+	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		fmt.Fprintln(os.Stderr)
 		fmt.Fprintln(os.Stderr, usageMessage)
 		os.Exit(1)
-	}
-
-	if *helpFlag {
-		fmt.Println(titleAboutMessage)
-		fmt.Println(usageMessage)
-		fmt.Println(repositoryMessage)
-		os.Exit(0)
 	}
 
 	flagConfig := new(configuration)
