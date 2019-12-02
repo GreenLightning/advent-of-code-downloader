@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"text/template"
 	"time"
 )
@@ -139,21 +140,33 @@ func addFlags(config *configuration) {
 
 	sessionCookieFlag := flags.String("session-cookie", "", "")
 	outputFlag := flags.String("output", "", "")
-	yearFlag := flags.Int("year", 0, "")
-	dayFlag := flags.Int("day", 0, "")
+	yearFlag := flags.String("year", "", "")
+	dayFlag := flags.String("day", "", "")
 
 	forceFlag := flags.Bool("force", false, "")
 	waitFlag := flags.Bool("wait", false, "")
 
-	err := flags.Parse(os.Args[1:])
-	if err == flag.ErrHelp {
+	var year, day int
+
+	flagErr := flags.Parse(os.Args[1:])
+
+	if flagErr == nil {
+		year, flagErr = parseIntFlag(*yearFlag)
+	}
+
+	if flagErr == nil {
+		day, flagErr = parseIntFlag(*dayFlag)
+	}
+
+	if flagErr == flag.ErrHelp {
 		fmt.Println(titleAboutMessage)
 		fmt.Println(usageMessage)
 		fmt.Println(repositoryMessage)
 		os.Exit(0)
 	}
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+
+	if flagErr != nil {
+		fmt.Fprintln(os.Stderr, flagErr)
 		fmt.Fprintln(os.Stderr)
 		fmt.Fprintln(os.Stderr, usageMessage)
 		os.Exit(1)
@@ -162,8 +175,8 @@ func addFlags(config *configuration) {
 	flagConfig := new(configuration)
 	flagConfig.SessionCookie = *sessionCookieFlag
 	flagConfig.Output = *outputFlag
-	flagConfig.Year = *yearFlag
-	flagConfig.Day = *dayFlag
+	flagConfig.Year = year
+	flagConfig.Day = day
 
 	config.merge(flagConfig)
 
@@ -173,6 +186,15 @@ func addFlags(config *configuration) {
 	if *waitFlag {
 		config.Wait = true
 	}
+}
+
+func parseIntFlag(text string) (int, error) {
+	if text == "" {
+		return 0, nil
+	}
+	// Parse in base 10.
+	value, err := strconv.ParseInt(text, 10, 0)
+	return int(value), err
 }
 
 func renderOutput(config *configuration) error {
