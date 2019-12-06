@@ -23,10 +23,20 @@ the normal, longer puzzle inputs.
 
 ## Installation
 
-Please use the standard `go get` command to build and install `aocdl`.
+#### Binary Download
+
+You can download pre-compiled binaries from the
+[releases](https://github.com/GreenLightning/advent-of-code-downloader/releases/latest/)
+page. Just unzip the archive and place the binary in your working directory or
+in a convenient location in your PATH.
+
+#### Build From Source
+
+If you have the [Go](https://golang.org/) compiler installed, you can use the
+standard `go get` command to download, build and install `aocdl`.
 
 ```
-go get github.com/GreenLightning/advent-of-code-downloader/aocdl
+go get -u github.com/GreenLightning/advent-of-code-downloader/aocdl
 ```
 
 ## Setting the Session Cookie
