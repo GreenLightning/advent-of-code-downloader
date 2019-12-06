@@ -5,6 +5,16 @@
 `aocdl` is a command line utility that automatically downloads your [Advent of
 Code](https://adventofcode.com/) puzzle inputs.
 
+This tool is for competitive programmers, who want to solve the puzzles as
+fast as possible. Using the `-wait` flag you can actually start the program
+before the puzzle is published, thus spending exactly zero seconds of
+competition time on downloading the input (see [Basic Usage](#basic-usage) for
+details).
+
+If you are working with the command line, it might also be more comfortable to
+type `aocdl -year 2015 -day 1` instead of downloading the puzzle input using
+the browser.
+
 *Trivia*: If the puzzle input is very short, it will be embedded into the
 puzzle page instead of being linked (for an example see [day 4 of
 2015](https://adventofcode.com/2015/day/4)). Thanks to the consistent API of
@@ -21,10 +31,13 @@ go get github.com/GreenLightning/advent-of-code-downloader/aocdl
 
 ## Setting the Session Cookie
 
-Your session cookie is required to download your personalized puzzle input. You
-can set it in two ways.
+Your session cookie is required to download your personalized puzzle input.
+See the two sections below, if you want to know what a session cookie is or
+how to get yours. The session cookies from the Advent of Code website are
+valid for about a month, so you only have to get your cookie once per event.
+You can provide it to `aocdl` in two ways.
 
-Provide your session cookie as a command line parameter:
+Set your session cookie as a command line parameter:
 
 ```
 aocdl -session-cookie 0123456789...abcdef
@@ -38,6 +51,50 @@ the current directory and add the `session-cookie` key:
 	"session-cookie": "0123456789...abcdef"
 }
 ```
+
+#### What Is a Session Cookie?
+
+A session cookie is a small piece of data used to authenticate yourself to the
+Advent of Code web servers. It is not human-readable and might look something
+like this (this is not a valid cookie):
+
+```
+53616c7465645f5fbd2d445187c5dc5463efb7020021c273c3d604b5946f9e87e2dc30b649f9b2235e8cd57632e415cb
+```
+
+When you log in, the Advent of Code server generates a new session cookie and
+sends it to your browser, which saves it on your computer. Every time you make
+a request, your browser sends the cookie back to the server, which is how the
+server knows that the request is from you and not somebody else. That way the
+server can send you a personalized version of the website (for example
+displaying your username and current number of stars or sending you your
+personal puzzle input instead of somebody else's input).
+
+#### How Do I Get My Session Cookie?
+
+Google Chrome:
+
+- Go to [adventofcode.com](https://adventofcode.com/)
+- Make sure you are logged in
+- Right click and select "Inspect"
+- Select the "Application" tab
+- In the tree on the left, select "Storage" → "Cookies" → "https://adventofcode.com"
+- You should see a table of cookies, find the row with "session" as name
+- Double click the row in the "Value" column to select the value of the cookie
+- Press `CTRL + C` or right click and select "Copy" to copy the cookie
+- Paste it into your configuration file or on the command line
+
+Mozilla Firefox:
+
+- Go to [adventofcode.com](https://adventofcode.com/)
+- Make sure you are logged in
+- Right click and select "Inspect Element"
+- Select the "Storage" tab
+- In the tree on the left, select "Cookies" → "https://adventofcode.com"
+- You should see a table of cookies, find the row with "session" as name
+- Double click the row in the "Value" column to select the value of the cookie
+- Press `CTRL + C` or right click and select "Copy" to copy the cookie
+- Paste it into your configuration file or on the command line
 
 ## Basic Usage
 
@@ -55,6 +112,13 @@ the new day:
 
 ```
 aocdl -wait
+```
+
+Finally, you can also specify a day (and year) explicitly.
+
+```
+aocdl -day 1
+aocdl -year 2015 -day 1
 ```
 
 ## Options
