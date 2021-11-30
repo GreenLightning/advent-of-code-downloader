@@ -62,6 +62,11 @@ the current directory and add the `session-cookie` key:
 }
 ```
 
+You can test your setup by downloading an old puzzle input using `aocdl -year
+2020 -day 1`. You will get an appropriate error message if the program cannot
+find a session cookie. However, if you get a `500 Internal Server Error`, this
+most likely means your session cookie is invalid or expired.
+
 #### What Is a Session Cookie?
 
 A session cookie is a small piece of data used to authenticate yourself to the
