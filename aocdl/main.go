@@ -109,12 +109,20 @@ func main() {
 	err = renderOutput(config)
 	checkError(err)
 
-	if !config.Force {
-		// Check if output file exists before waiting and before downloading.
-		if _, err := os.Stat(config.Output); !os.IsNotExist(err) {
+	// Check if output file exists before waiting and before downloading.
+	info, err := os.Stat(config.Output)
+	if err == nil {
+		if info.IsDir() {
+			fmt.Fprintf(os.Stderr, "cannot write to '%s' because it is a directory\n", config.Output)
+			os.Exit(1)
+		}
+		if !config.Force {
 			fmt.Fprintf(os.Stderr, "file '%s' already exists; use '-force' to overwrite\n", config.Output)
 			os.Exit(1)
 		}
+	} else if !os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "failed to check output file '%s': %v\n", config.Output, err)
+		os.Exit(1)
 	}
 
 	if config.Wait {
