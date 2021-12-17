@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"text/template"
 	"time"
+
+	_ "time/tzdata"
 )
 
 const titleAboutMessage = `Advent of Code Downloader
@@ -85,7 +87,10 @@ func main() {
 	}
 
 	est, err := time.LoadLocation("EST")
-	checkError(err)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "failed to load time zone information:", err)
+		os.Exit(1)
+	}
 
 	now := time.Now().In(est)
 	next := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, est)
