@@ -272,6 +272,8 @@ func download(config *configuration) error {
 		return err
 	}
 
+	req.Header.Set("User-Agent", "github.com/GreenLightning/advent-of-code-downloader")
+
 	cookie := new(http.Cookie)
 	cookie.Name, cookie.Value = "session", config.SessionCookie
 	req.AddCookie(cookie)
