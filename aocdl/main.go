@@ -268,6 +268,7 @@ func download(config *configuration) error {
 	client := new(http.Client)
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://adventofcode.com/%d/day/%d/input", config.Year, config.Day), nil)
+	req.Header.Set("User-Agent", "github.com/GreenLightning/advent-of-code-downloader")
 	if err != nil {
 		return err
 	}
