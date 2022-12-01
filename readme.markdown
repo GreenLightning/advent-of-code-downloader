@@ -33,10 +33,10 @@ in a convenient location in your PATH.
 #### Build From Source
 
 If you have the [Go](https://golang.org/) compiler installed, you can use the
-standard `go get` command to download, build and install `aocdl`.
+standard `go install` command to download, build and install `aocdl`.
 
 ```
-go get -u github.com/GreenLightning/advent-of-code-downloader/aocdl
+go install github.com/GreenLightning/advent-of-code-downloader/aocdl@latest
 ```
 
 ## Setting the Session Cookie
