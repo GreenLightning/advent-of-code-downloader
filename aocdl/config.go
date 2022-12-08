@@ -17,31 +17,39 @@ type configuration struct {
 	Wait          bool   `json:"-"`
 }
 
-func loadConfigs() (*configuration, error) {
+func loadConfigs(configPath string) (*configuration, error) {
 	config := new(configuration)
 
-	home := ""
-	usr, err := user.Current()
-	if err == nil {
-		home = usr.HomeDir
-	}
-
-	if home != "" {
-		err = config.mergeWithFileIfExists(filepath.Join(home, ".aocdlconfig"))
+	// If a config path was given, use it above any other defaults
+	if len(configPath) > 0 {
+		err := config.mergeWithFileIfExists(configPath)
 		if err != nil {
 			return nil, err
 		}
-	}
+	} else {
+		home := ""
+		usr, err := user.Current()
+		if err == nil {
+			home = usr.HomeDir
+		}
 
-	wd, _ := os.Getwd()
+		if home != "" {
+			err = config.mergeWithFileIfExists(filepath.Join(home, ".aocdlconfig"))
+			if err != nil {
+				return nil, err
+			}
+		}
 
-	// If we could not determine either directory or if we are not currently in
-	// the home directory, try and load the configuration relative to the
-	// current working directory.
-	if wd == "" || home == "" || wd != home {
-		err = config.mergeWithFileIfExists(".aocdlconfig")
-		if err != nil {
-			return nil, err
+		wd, _ := os.Getwd()
+
+		// If we could not determine either directory or if we are not currently in
+		// the home directory, try and load the configuration relative to the
+		// current working directory.
+		if wd == "" || home == "" || wd != home {
+			err = config.mergeWithFileIfExists(".aocdlconfig")
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
