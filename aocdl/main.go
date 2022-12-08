@@ -9,7 +9,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"strconv"
 	"text/template"
 	"time"
 
@@ -27,6 +26,9 @@ const usageMessage = `Usage:
 	aocdl [options]
 
 Options:
+
+	-config-path ../.aocdlconfig
+		Load config from the path specified.
 
 	-session-cookie 0123456789...abcdef
 		Use the specified string as session cookie.
@@ -65,21 +67,29 @@ Please provide your session cookie as a command line parameter:
 
 aocdl -session-cookie 0123456789...abcdef
 
-Or create a configuration file named '.aocdlconfig' in your home directory or in
-the current directory and add the 'session-cookie' key:
+Or create a configuration file named '.aocdlconfig' in your home directory,
+current directory, or passed in with the -config-path option and add the 
+'session-cookie' key:
 
 {
 	"session-cookie": "0123456789...abcdef"
 }
 `
 
+type startupFlags struct {
+	configuration
+	ConfigPath string
+}
+
 func main() {
 	rand.Seed(time.Now().Unix())
 
-	config, err := loadConfigs()
+	flags := parseFlags()
+
+	config, err := loadConfigs(flags.ConfigPath)
 	checkError(err)
 
-	addFlags(config)
+	addFlags(flags, config)
 
 	if config.SessionCookie == "" {
 		fmt.Fprintln(os.Stderr, missingSessionCookieMessage)
@@ -145,31 +155,22 @@ func checkError(err error) {
 	}
 }
 
-func addFlags(config *configuration) {
+func parseFlags() startupFlags {
 	flags := flag.NewFlagSet("", flag.ContinueOnError)
 
 	ignored := new(bytes.Buffer)
 	flags.SetOutput(ignored)
 
-	sessionCookieFlag := flags.String("session-cookie", "", "")
-	outputFlag := flags.String("output", "", "")
-	yearFlag := flags.String("year", "", "")
-	dayFlag := flags.String("day", "", "")
+	var input startupFlags
 
-	forceFlag := flags.Bool("force", false, "")
-	waitFlag := flags.Bool("wait", false, "")
-
-	var year, day int
+	flags.StringVar(&input.SessionCookie, "session-cookie", "", "")
+	flags.StringVar(&input.Output, "output", "", "")
+	flags.IntVar(&input.Year, "year", 0, "")
+	flags.IntVar(&input.Year, "day", 0, "")
+	flags.BoolVar(&input.Force, "force", false, "")
+	flags.BoolVar(&input.Wait, "wait", false, "")
 
 	flagErr := flags.Parse(os.Args[1:])
-
-	if flagErr == nil {
-		year, flagErr = parseIntFlag(*yearFlag)
-	}
-
-	if flagErr == nil {
-		day, flagErr = parseIntFlag(*dayFlag)
-	}
 
 	if flagErr == flag.ErrHelp {
 		fmt.Println(titleAboutMessage)
@@ -185,29 +186,25 @@ func addFlags(config *configuration) {
 		os.Exit(1)
 	}
 
-	flagConfig := new(configuration)
-	flagConfig.SessionCookie = *sessionCookieFlag
-	flagConfig.Output = *outputFlag
-	flagConfig.Year = year
-	flagConfig.Day = day
+	return input
+}
+
+func addFlags(flags startupFlags, config *configuration) {
+	flagConfig := &configuration{
+		SessionCookie: flags.SessionCookie,
+		Output:        flags.Output,
+		Year:          flags.Year,
+		Day:           flags.Day,
+	}
 
 	config.merge(flagConfig)
 
-	if *forceFlag {
+	if flags.Force {
 		config.Force = true
 	}
-	if *waitFlag {
+	if flags.Wait {
 		config.Wait = true
 	}
-}
-
-func parseIntFlag(text string) (int, error) {
-	if text == "" {
-		return 0, nil
-	}
-	// Parse in base 10.
-	value, err := strconv.ParseInt(text, 10, 0)
-	return int(value), err
 }
 
 func renderOutput(config *configuration) error {
