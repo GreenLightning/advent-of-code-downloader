@@ -151,6 +151,9 @@ aocdl -year 2015 -day 1
 		Download the input from the specified year or day. By default the
 		current year and day is used.
 
+	-config path/to/config.aocdlconfig
+		Load options from a custom configuration file (see below for details).
+
 	-force
 		Overwrite file if it already exists.
 
@@ -164,11 +167,16 @@ aocdl -year 2015 -day 1
 ## Configuration Files
 
 The program looks for configuration files named `.aocdlconfig` in the user's
-home directory and in the current working directory.
+home directory and in the current working directory. An additional, custom
+configuration file can be specified via the `-config` command line flag.
 
-For each option, the configuration file in the current directory overwrites the
-configuration file in the home directory and command line parameters overwrite
-any configuration file.
+The configurations are merged in the following order, with later entries having
+higher priority. Each option is taken from the last configuration that specifies
+it:
+- configuration file in home directory
+- configuration file in current directory
+- custom configuration file, if specified via -config flag
+- command line parameters
 
 Configuration files must contain one valid JSON object. The following keys
 corresponding to some of the command line parameters above are accepted:

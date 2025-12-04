@@ -24,37 +24,66 @@ puzzle inputs.
 
 const usageMessage = `Usage:
 
-	aocdl [options]
+    aocdl [options]
 
 Options:
 
-	-session-cookie 0123456789...abcdef
-		Use the specified string as session cookie.
+    -session-cookie 0123456789...abcdef
+        Use the specified string as session cookie.
 
-	-output input.txt
-		Save the downloaded puzzle input to the specified file. The special
-		markers {{.Year}} and {{.Day}} will be replaced with the selected year
-		and day. [see also Go documentation for text/template]
+    -output input.txt
+        Save the downloaded puzzle input to the specified file. The special
+        markers {{.Year}} and {{.Day}} will be replaced with the selected year
+        and day. [see also Go documentation for text/template]
 
-	-year 2000
-	-day 24
-		Download the input from the specified year or day. By default the
-		current year and day is used.
+    -year 2000
+    -day 24
+        Download the input from the specified year or day. By default the
+        current year and day is used.
 
-	-force
-		Overwrite file if it already exists.
+    -config path/to/config.aocdlconfig
+        Load options from a custom configuration file (see below for details).
 
-	-wait
-		If this flag is specified, year and day are ignored and the program
-		waits until midnight (when new puzzles are released) and then downloads
-		the input of the new day. While waiting a countdown is displayed. To
-		reduce load on the Advent of Code servers, the download is started after
-		a random delay between 2 and 30 seconds after midnight.
+    -force
+        Overwrite file if it already exists.
+
+    -wait
+        If this flag is specified, year and day are ignored and the program
+        waits until midnight (when new puzzles are released) and then downloads
+        the input of the new day. While waiting a countdown is displayed. To
+        reduce load on the Advent of Code servers, the download is started after
+        a random delay between 2 and 30 seconds after midnight.
+
+Configuration Files:
+
+    The program looks for configuration files named .aocdlconfig in the user's
+    home directory and in the current working directory. An additional, custom
+    configuration file can be specified via the -config command line flag.
+
+    The configurations are merged in the following order, with later entries having
+    higher priority. Each option is taken from the last configuration that specifies
+    it:
+        - configuration file in home directory
+        - configuration file in current directory
+        - custom configuration file, if specified via -config flag
+        - command line parameters
+
+    Configuration files must contain one valid JSON object.
+    A fully customized configuration file might look like this, although the program
+    would only ever download the same input unless the date is specified on the
+    command line:
+
+    {
+        "session-cookie": "0123456789...abcdef",
+        "output": "input-{{.Year}}-{{.Day}}.txt",
+        "year": 2015,
+        "day": 24
+    }
 `
 
 const repositoryMessage = `Repository:
 
-	https://github.com/GreenLightning/advent-of-code-downloader
+    https://github.com/GreenLightning/advent-of-code-downloader
 `
 
 const missingSessionCookieMessage = `No Session Cookie
@@ -69,7 +98,7 @@ Or create a configuration file named '.aocdlconfig' in your home directory or in
 the current directory and add the 'session-cookie' key:
 
 {
-	"session-cookie": "0123456789...abcdef"
+    "session-cookie": "0123456789...abcdef"
 }
 `
 
@@ -154,6 +183,7 @@ func addFlags(config *configuration) {
 	yearFlag := flags.String("year", "", "")
 	dayFlag := flags.String("day", "", "")
 
+	configFlag := flags.String("config", "", "")
 	forceFlag := flags.Bool("force", false, "")
 	waitFlag := flags.Bool("wait", false, "")
 
@@ -188,6 +218,15 @@ func addFlags(config *configuration) {
 	flagConfig.Output = *outputFlag
 	flagConfig.Year = year
 	flagConfig.Day = day
+
+	if *configFlag != "" {
+		customConfig, err := loadConfig(*configFlag)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to load custom configuration file: %v\n", err)
+			os.Exit(1)
+		}
+		config.merge(customConfig)
+	}
 
 	config.merge(flagConfig)
 
