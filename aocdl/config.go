@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -49,7 +48,7 @@ func loadConfigs() (*configuration, error) {
 }
 
 func loadConfig(filename string) (*configuration, error) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}

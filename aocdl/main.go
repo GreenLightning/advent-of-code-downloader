@@ -6,7 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"math/rand"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"strconv"
@@ -74,8 +74,6 @@ the current directory and add the 'session-cookie' key:
 `
 
 func main() {
-	rand.Seed(time.Now().Unix())
-
 	config, err := loadConfigs()
 	checkError(err)
 
@@ -234,7 +232,7 @@ func renderOutput(config *configuration) error {
 
 func wait(next time.Time) {
 	min, max := 2*1000, 30*1000
-	delayMillis := min + rand.Intn(max-min+1)
+	delayMillis := min + rand.IntN(max-min+1)
 
 	hours, mins, secs := 0, 0, 0
 	for remaining := time.Until(next); remaining >= 0; remaining = time.Until(next) {
