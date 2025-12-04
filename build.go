@@ -19,9 +19,10 @@ func main() {
 	check(os.Chdir("aocdl"))
 
 	build("windows", "amd64", "", "aocdl.exe", "aocdl-windows.zip", folderName)
-	build("darwin", "amd64", "", "aocdl", "aocdl-macos.zip", folderName)
+	build("darwin", "amd64", "", "aocdl", "aocdl-macos-intel.zip", folderName)
+	build("darwin", "arm64", "", "aocdl", "aocdl-macos-arm64.zip", folderName)
 	build("linux", "amd64", "", "aocdl", "aocdl-linux-amd64.zip", folderName)
-	build("linux", "arm", "6", "aocdl", "aocdl-armv6.zip", folderName)
+	build("linux", "arm", "6", "aocdl", "aocdl-linux-armv6.zip", folderName)
 }
 
 func build(goos, goarch, goarm string, binaryName, packageName, folderName string) {
